@@ -1,0 +1,120 @@
+<!DOCTYPE=html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8" />
+    <script src="jquery-1.11.3.min.js" type="text/javascript"></script>
+</head>
+<body>
+<style>
+    ul#scrollImg{
+        padding:10px;
+        position: relative;
+        box-sizing: border-box;
+        width: 1000px;
+        margin: 0 auto;
+    }
+    ul#scrollImg li{
+        position: absolute;
+        width: 50%;
+        overflow: hidden;
+        box-sizing: border-box;
+        padding:10px 5px;
+    }
+    ul#scrollImg li img{
+        width: 100%;
+        display: none;
+    }
+</style>
+<ul id="scrollImg">
+</ul>
+</body>
+<script type="text/javascript">
+    var scrollImg = document.getElementById("scrollImg");
+    var imgs = scrollImg.getElementsByTagName('img');
+    var minHeight = 300;
+    var maxHeight = 500;
+    $.ajax({
+        type: "GET",
+        url: "data.txt",
+        success: bindData
+    });
+    function bindData(data) {
+        data = $.parseJSON(data);
+        if (data) {
+            var str = "";
+            console.log(data.length);
+            for (var i = 0; i < data.length; i++) {
+                var curData = data[i];
+                str += '<li>';
+                str += '<img src="" realSrc="' + curData.src + '"/>';
+                str += '</li>';
+            }
+            $("#scrollImg").html(str);
+        }
+        var setCss = function () {
+            $("#scrollImg li").each(function (index,item) {
+                var line = Math.floor(index/4);
+                switch (index%4){
+                    case 0:
+                        $(item).css({
+                            "top": (minHeight + maxHeight)*line + "px",
+                            "left": "0",
+                            "z-index": index,
+                            "height": minHeight + "px"
+                        });
+                        break;
+                    case 1:
+                        $(item).css({
+                            "top": (minHeight + maxHeight)*line + "px",
+                            "left": "50%",
+                            "z-index": index,
+                            "height": maxHeight + "px"
+                        });
+                        break;
+                    case 2:
+                        $(item).css({
+                            "top": (minHeight + maxHeight)*line + minHeight + "px",
+                            "left": "0",
+                            "z-index": index,
+                            "height": maxHeight + "px"
+                        });
+                        break;
+                    case 3:
+                        $(item).css({
+                            "top": (minHeight + maxHeight)*line + maxHeight + "px",
+                            "left": "50%",
+                            "z-index": index,
+                            "height": minHeight + "px"
+                        });
+                        break;
+                }
+            })
+        };
+        setCss();
+    }
+    window.onscroll = allImgsDelayLoad;
+    window.setTimeout(allImgsDelayLoad,10);
+    //延迟加载
+    function allImgsDelayLoad() {
+        for (var i = 0; i < imgs.length; i++) {
+            var curImg = imgs[i];
+            var a = $(document).scrollTop() + $(window).height();
+            var b = $(curImg).parent().height() + $(curImg).parent().offset().top;
+            if (curImg.loaded) { continue; }
+            if(a>b){
+                console.log(1)
+                var tempImg = new Image();
+                tempImg.index = i;
+                tempImg.src = imgs[i].getAttribute('realSrc');
+                tempImg.onload = function () {
+                    imgs[this.index].src = this.src;
+
+                    $(imgs[this.index]).fadeIn();
+                }
+                imgs[i].loaded = true;
+            }
+        }
+    }
+
+</script>
+</html>
